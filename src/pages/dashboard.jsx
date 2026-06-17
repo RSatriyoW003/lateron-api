@@ -151,6 +151,7 @@ function HeroSectionContent() {
 }
 
 function AboutSection() {
+  const navigate = useNavigate();
   return (
     <section className="w-full bg-white py-20 px-16 relative overflow-hidden">
       <div className="w-full max-w-7xl mx-auto mb-20 select-none">
@@ -187,7 +188,17 @@ function AboutSection() {
               confident on your journey.
             </p>
           </div>
+<<<<<<< HEAD
           {/* Learn More About Us button removed per request */}
+=======
+
+          <button
+            onClick={() => navigate("/register")}
+            className="bg-[#1B4F72] text-white text-[14px] font-semibold px-7 py-3 rounded-full hover:bg-[#163f5c] transition-colors shadow-sm mt-4"
+          >
+            Learn More About Us
+          </button>
+>>>>>>> 753db4cf2ec0f5b1499383041a2724cb5e82d133
         </div>
 
         <div className="relative w-full h-[400px] flex items-center justify-center">

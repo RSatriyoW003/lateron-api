@@ -210,12 +210,29 @@ await fetch("http://localhost:3000/roadmaps", {
   ];
 
   return (
+<<<<<<< HEAD
     <div className="min-h-screen bg-white font-sans flex flex-col justify-between text-[#1F384C]">
       
       {/* NAVBAR (KINI BAGIAN KANAN DIISI UTK BUTTON NAVBAR, TENGAH KOSONG) */}
       <nav className="w-full bg-white border-b border-gray-100 px-16 py-5 flex items-center shrink-0 sticky top-0 z-50">
         <div className="shrink-0 cursor-pointer" onClick={() => navigate('/dashboard')}>
           <img src={logoLateron} alt="Lateron" className="w-[100px] h-auto object-contain" style={{ imageRendering: "auto" }} />
+=======
+    <div className="min-h-screen w-full bg-white font-sans flex flex-col text-[#1F384C] overflow-x-hidden">
+      
+      {/* NAVBAR (KINI BAGIAN KANAN DIISI UTK BUTTON NAVBAR, TENGAH KOSONG) */}
+      <nav className="w-full bg-white border-b border-gray-100 px-6 lg:px-16 py-4 flex items-center justify-between shrink-0">
+        <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate('/dashboard')}>
+          <img 
+            src={logoLateron} 
+            alt="Lateron Logo" 
+            className="h-9 object-contain" 
+            onError={(e) => {
+              e.target.style.display = 'none';
+              e.target.insertAdjacentHTML('afterend', '<div class="text-[#2979BA] font-bold text-xl flex items-center gap-1"><span class="text-2xl">⌊</span>Lateron</div>');
+            }}
+          />
+>>>>>>> 753db4cf2ec0f5b1499383041a2724cb5e82d133
         </div>
         <div className="flex-1 flex items-center justify-end gap-6 text-[15px] text-[#7A9EB5] mr-14">
           <Link to="/dashboard" className="hover:text-[#1B4F72] transition-colors">Home</Link>
@@ -229,17 +246,25 @@ await fetch("http://localhost:3000/roadmaps", {
       </nav>
 
       {/* MAIN CONTAINER */}
+<<<<<<< HEAD
       <div className="max-w-6xl w-full mx-auto px-16 py-6 flex flex-col flex-grow justify-start">
+=======
+      <div className="max-w-6xl w-full mx-auto px-6 lg:px-16 py-6 flex flex-col flex-grow">
+>>>>>>> 753db4cf2ec0f5b1499383041a2724cb5e82d133
         <div>
           <h1 className="text-[26px] font-bold text-[#1F384C] tracking-tight">Set Up Your Learning Roadmap</h1>
           <p className="text-gray-400 text-[14px] mt-1">Tell us your goals and schedule so we can create the best study plan for your language test.</p>
         </div>
 
         {/* WORKSPACE AREA */}
+<<<<<<< HEAD
         <div className="flex mt-8 gap-16 items-start flex-grow mb-4">
+=======
+        <div className="flex flex-col lg:flex-row mt-8 gap-10 lg:gap-16 items-start flex-grow mb-4">
+>>>>>>> 753db4cf2ec0f5b1499383041a2724cb5e82d133
           
           {/* SIDEBAR NAVIGATION (KIRI) */}
-          <div className="w-1/4 flex flex-col gap-1 border-r border-gray-100 pr-8 justify-start pt-2 shrink-0">
+          <div className="w-full lg:w-1/4 flex flex-col gap-1 lg:border-r border-gray-100 lg:pr-8 justify-start pt-2 shrink-0">
             {steps.map((step) => {
               const isActive = activeStep === step.id;
               const isPast = step.id < activeStep;
@@ -263,7 +288,11 @@ await fetch("http://localhost:3000/roadmaps", {
           </div>
 
           {/* COMPONENT FORM (KANAN) */}
+<<<<<<< HEAD
           <div className="w-3/4 flex flex-col justify-start pl-4 py-2">
+=======
+          <div className="w-full lg:w-3/4 flex flex-col justify-start lg:pl-4 py-2">
+>>>>>>> 753db4cf2ec0f5b1499383041a2724cb5e82d133
             
             <div className="space-y-6 flex-grow">
               {/* STEP 1: Language Test */}
@@ -508,7 +537,7 @@ await fetch("http://localhost:3000/roadmaps", {
       </div>
 
       {/* FOOTER */}
-      <footer className="w-full bg-[#EDF4FF]/30 border-t border-gray-100 px-16 pt-6 pb-4 shrink-0">
+      <footer className="w-full bg-[#EDF4FF]/30 border-t border-gray-100 px-6 lg:px-16 pt-6 pb-4 shrink-0 mt-auto">
         <div className="max-w-6xl w-full mx-auto grid grid-cols-12 gap-8 items-start mb-4">
           
           <div className="col-span-5 flex flex-col gap-3">
