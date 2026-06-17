@@ -24,6 +24,11 @@ app.get('/', (req, res) => {
   });
 });
 
+// ROOT ENDPOINT
+app.get("/", (req, res) => {
+  res.send("Lateron API Running 🚀");
+});
+
 // SERVER
 const PORT = process.env.PORT || 3000;
 
