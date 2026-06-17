@@ -210,91 +210,90 @@ await fetch("http://localhost:3000/roadmaps", {
   ];
 
   return (
-<<<<<<< HEAD
-    <div className="min-h-screen bg-white font-sans flex flex-col justify-between text-[#1F384C]">
-      
-      {/* NAVBAR (KINI BAGIAN KANAN DIISI UTK BUTTON NAVBAR, TENGAH KOSONG) */}
-      <nav className="w-full bg-white border-b border-gray-100 px-16 py-5 flex items-center shrink-0 sticky top-0 z-50">
-        <div className="shrink-0 cursor-pointer" onClick={() => navigate('/dashboard')}>
-          <img src={logoLateron} alt="Lateron" className="w-[100px] h-auto object-contain" style={{ imageRendering: "auto" }} />
-=======
-    <div className="min-h-screen w-full bg-white font-sans flex flex-col text-[#1F384C] overflow-x-hidden">
-      
-      {/* NAVBAR (KINI BAGIAN KANAN DIISI UTK BUTTON NAVBAR, TENGAH KOSONG) */}
-      <nav className="w-full bg-white border-b border-gray-100 px-6 lg:px-16 py-4 flex items-center justify-between shrink-0">
-        <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate('/dashboard')}>
-          <img 
-            src={logoLateron} 
-            alt="Lateron Logo" 
-            className="h-9 object-contain" 
-            onError={(e) => {
-              e.target.style.display = 'none';
-              e.target.insertAdjacentHTML('afterend', '<div class="text-[#2979BA] font-bold text-xl flex items-center gap-1"><span class="text-2xl">⌊</span>Lateron</div>');
-            }}
-          />
->>>>>>> 753db4cf2ec0f5b1499383041a2724cb5e82d133
-        </div>
-        <div className="flex-1 flex items-center justify-end gap-6 text-[15px] text-[#7A9EB5] mr-14">
-          <Link to="/dashboard" className="hover:text-[#1B4F72] transition-colors">Home</Link>
-          <span className="w-1 h-1 rounded-full bg-[#2571A3]/40" />
-          <span className="text-[#1B4F72] font-semibold">Generate</span>
-          <span className="w-1 h-1 rounded-full bg-[#2571A3]" />
-          <Link to="/my-roadmap" className="hover:text-[#1B4F72] transition-colors">My Roadmap</Link>
-          <span className="w-1 h-1 rounded-full bg-[#2571A3]/40" />
-          <Link to="/profile" className="hover:text-[#1B4F72] transition-colors">Profile</Link>
-        </div>
-      </nav>
+  <div className="min-h-screen w-full bg-white font-sans flex flex-col text-[#1F384C] overflow-x-hidden">
 
-      {/* MAIN CONTAINER */}
-<<<<<<< HEAD
-      <div className="max-w-6xl w-full mx-auto px-16 py-6 flex flex-col flex-grow justify-start">
-=======
-      <div className="max-w-6xl w-full mx-auto px-6 lg:px-16 py-6 flex flex-col flex-grow">
->>>>>>> 753db4cf2ec0f5b1499383041a2724cb5e82d133
-        <div>
-          <h1 className="text-[26px] font-bold text-[#1F384C] tracking-tight">Set Up Your Learning Roadmap</h1>
-          <p className="text-gray-400 text-[14px] mt-1">Tell us your goals and schedule so we can create the best study plan for your language test.</p>
-        </div>
+    {/* NAVBAR */}
+    <nav className="w-full bg-white border-b border-gray-100 px-6 lg:px-16 py-4 flex items-center justify-between sticky top-0 z-50">
 
-        {/* WORKSPACE AREA */}
-<<<<<<< HEAD
-        <div className="flex mt-8 gap-16 items-start flex-grow mb-4">
-=======
-        <div className="flex flex-col lg:flex-row mt-8 gap-10 lg:gap-16 items-start flex-grow mb-4">
->>>>>>> 753db4cf2ec0f5b1499383041a2724cb5e82d133
-          
-          {/* SIDEBAR NAVIGATION (KIRI) */}
-          <div className="w-full lg:w-1/4 flex flex-col gap-1 lg:border-r border-gray-100 lg:pr-8 justify-start pt-2 shrink-0">
-            {steps.map((step) => {
-              const isActive = activeStep === step.id;
-              const isPast = step.id < activeStep;
-              return (
-                <button
-                  key={step.id}
-                  disabled={step.id > activeStep}
-                  onClick={() => setActiveStep(step.id)}
-                  className={`text-left py-3 px-5 rounded-full text-[15px] font-medium transition-all duration-200 ${
-                    isActive 
-                      ? 'bg-[#2979BA] text-white shadow-sm font-semibold' 
-                      : isPast 
-                        ? 'text-gray-400 hover:bg-slate-50' 
-                        : 'text-gray-300 cursor-not-allowed'
-                  }`}
-                >
-                  {step.label}
-                </button>
-              );
-            })}
-          </div>
+      {/* LOGO */}
+      <div
+        className="flex items-center cursor-pointer"
+        onClick={() => navigate("/dashboard")}
+      >
+        <img
+          src={logoLateron}
+          alt="Lateron Logo"
+          className="h-9 object-contain"
+          onError={(e) => {
+            e.currentTarget.style.display = "none";
+          }}
+        />
+      </div>
 
-          {/* COMPONENT FORM (KANAN) */}
-<<<<<<< HEAD
-          <div className="w-3/4 flex flex-col justify-start pl-4 py-2">
-=======
-          <div className="w-full lg:w-3/4 flex flex-col justify-start lg:pl-4 py-2">
->>>>>>> 753db4cf2ec0f5b1499383041a2724cb5e82d133
-            
-            <div className="space-y-6 flex-grow">
+      {/* MENU */}
+      <div className="flex items-center gap-6 text-[15px] text-[#7A9EB5]">
+
+        <Link
+          to="/dashboard"
+          className="hover:text-[#1B4F72] transition-colors"
+        >
+          Home
+        </Link>
+
+        <span className="w-1 h-1 rounded-full bg-[#2571A3]/40" />
+
+        <span className="font-semibold text-[#1B4F72]">
+          Generate
+        </span>
+
+        <span className="w-1 h-1 rounded-full bg-[#2571A3]" />
+
+        <Link
+          to="/my-roadmap"
+          className="hover:text-[#1B4F72] transition-colors"
+        >
+          My Roadmap
+        </Link>
+
+        <span className="w-1 h-1 rounded-full bg-[#2571A3]/40" />
+
+        <Link
+          to="/profile"
+          className="hover:text-[#1B4F72] transition-colors"
+        >
+          Profile
+        </Link>
+
+      </div>
+
+    </nav>
+
+    {/* MAIN CONTAINER */}
+<main className="max-w-6xl w-full mx-auto px-6 lg:px-16 py-6 flex flex-col flex-grow">
+
+  {/* HEADER */}
+  <div>
+    <h1 className="text-[26px] font-bold tracking-tight">
+      Set Up Your Learning Roadmap
+    </h1>
+
+    <p className="text-gray-400 text-[14px] mt-1">
+      Tell us your goals and schedule so we can create the best study plan
+      for your language test.
+    </p>
+  </div>
+
+  /* WORKSPACE AREA */
+  <div className="flex flex-col lg:flex-row gap-10 lg:gap-16 mt-8 flex-grow">
+
+    {/* SIDEBAR NAVIGATION */}
+  
+
+    {/* COMPONENT FORM */}
+    <div className="w-full lg:w-3/4 flex flex-col justify-start lg:pl-4 py-2">
+
+      <div className="space-y-6 flex-grow">
+
               {/* STEP 1: Language Test */}
               {activeStep === 1 && (
                 <div className="flex flex-col gap-5">
@@ -325,7 +324,10 @@ await fetch("http://localhost:3000/roadmaps", {
                     <div className="relative">
                       <select 
                         value={formData.currentLevel}
-                        onChange={(e) => setFormData({...formData, currentLevel: e.target.value})}
+                        onChange={(e) => setFormData({
+  ...formData,
+  testDate: e.target.value,
+})}
                         className="w-full p-3.5 border border-[#2979BA]/40 rounded-full bg-[#EDF4FF]/50 text-[#1F384C] font-medium appearance-none focus:outline-none focus:border-[#2979BA] text-[15px]"
                       >
                         <option value="Basic">Basic</option>
@@ -502,87 +504,111 @@ await fetch("http://localhost:3000/roadmaps", {
             </div>
 
             {/* ACTION FOOTER BUTTONS */}
-            <div className="flex justify-between items-center mt-auto pt-4 border-t border-gray-100 shrink-0">
-              <button
-                type="button"
-                onClick={handleBack}
-                className={`py-2 px-4 rounded-full text-[14px] font-bold transition-all ${
-                  activeStep > 1 
-                    ? 'text-gray-500 hover:text-[#2979BA] hover:bg-slate-50' 
-                    : 'text-slate-300 cursor-not-allowed opacity-0'
-                }`}
-              >
-                Back
-              </button>
+<div className="flex justify-between items-center mt-auto pt-4 border-t border-gray-100 shrink-0">
 
-              {activeStep < 5 ? (
-                <button 
-                  onClick={handleNext}
-                  className="bg-[#2979BA] text-white py-2 px-6 rounded-full font-medium text-[15px] hover:bg-blue-600 transition-all duration-150 shadow-sm"
-                >
-                  Next
-                </button>
-              ) : (
-                <button 
-                  onClick={handleGenerateRoadmap}
-                  className="bg-[#2979BA] text-white py-2.5 px-6 rounded-full font-medium text-[15px] hover:bg-blue-600 transition-all duration-150 shadow-sm"
-                >
-                  Generate My Roadmap
-                </button>
-              )}
-            </div>
+  <button
+    type="button"
+    onClick={handleBack}
+    className={`py-2 px-4 rounded-full text-[14px] font-bold transition-all ${
+      activeStep > 1
+        ? "text-gray-500 hover:text-[#2979BA] hover:bg-slate-50"
+        : "text-slate-300 cursor-not-allowed opacity-0"
+    }`}
+  >
+    Back
+  </button>
 
-          </div>
-        </div>
-      </div>
+  {activeStep < 5 ? (
+    <button
+      type="button"
+      onClick={handleNext}
+      className="bg-[#2979BA] text-white py-2 px-6 rounded-full font-medium text-[15px] hover:bg-blue-600 transition-all duration-150 shadow-sm"
+    >
+      Next
+    </button>
+  ) : (
+    <button
+      type="button"
+      onClick={handleGenerateRoadmap}
+      className="bg-[#2979BA] text-white py-2.5 px-6 rounded-full font-medium text-[15px] hover:bg-blue-600 transition-all duration-150 shadow-sm"
+    >
+      Generate My Roadmap
+    </button>
+  )}
 
-      {/* FOOTER */}
-      <footer className="w-full bg-[#EDF4FF]/30 border-t border-gray-100 px-6 lg:px-16 pt-6 pb-4 shrink-0 mt-auto">
-        <div className="max-w-6xl w-full mx-auto grid grid-cols-12 gap-8 items-start mb-4">
-          
-          <div className="col-span-5 flex flex-col gap-3">
-            <img 
-              src={logoLateron} 
-              alt="Lateron Logo" 
-              className="h-7 object-contain self-start" 
-              onError={(e) => {
-                e.target.style.display = 'none';
-                e.target.insertAdjacentHTML('afterend', '<div class="text-[#2979BA] font-bold text-lg flex items-center gap-1"><span class="text-xl">⌊</span>Lateron</div>');
-              }}
-            />
-            <p className="text-gray-400 text-[12px] leading-relaxed max-w-xs">
-              Helping learners achieve their language goals with personalized roadmaps and smarter preparation.
-            </p>
-          </div>
+</div> {/* tutup ACTION + space-y */}
+</div> {/* tutup form kanan */}
+</div> {/* tutup workspace */}
 
-          <div className="col-span-3 flex flex-col gap-2">
-            <h4 className="font-bold text-[13px] text-gray-700">Quick Links</h4>
-            <div className="flex flex-col gap-1 text-[12px] text-gray-400">
-              <span className="opacity-70 cursor-default">Home</span>
-              <span className="opacity-70 cursor-default">About Us</span>
-              <span className="opacity-70 cursor-default">Roadmap</span>
-              <span className="opacity-70 cursor-default">Dashboard</span>
-            </div>
-          </div>
+</main>
 
-          <div className="col-span-4 flex flex-col gap-2">
-            <h4 className="font-bold text-[13px] text-gray-700">Support</h4>
-            <div className="flex flex-col gap-1 text-[12px] text-gray-400">
-              <span className="opacity-70 cursor-default">Language Test</span>
-              <span className="opacity-70 cursor-default">Progress Tracker</span>
-              <span className="opacity-70 cursor-default">Contact</span>
-              <span className="opacity-70 cursor-default">FAQ</span>
-            </div>
-          </div>
-        </div>
+{/* FOOTER */}
+<footer className="w-full bg-[#EDF4FF]/30 border-t border-gray-100 px-6 lg:px-16 pt-6 pb-4 shrink-0 mt-auto">
 
-        <div className="w-full text-center border-t border-slate-200/60 pt-3 text-[12px] text-gray-400 font-medium">
-          © 2026 Lateron. All Rights Reserved. Your Language Learning Partner.
-        </div>
-      </footer>
+  <div className="max-w-6xl w-full mx-auto grid grid-cols-12 gap-8 items-start mb-4">
+
+    {/* BRAND */}
+    <div className="col-span-12 lg:col-span-5 flex flex-col gap-3">
+
+      <img
+        src={logoLateron}
+        alt="Lateron Logo"
+        className="h-7 object-contain self-start"
+        onError={(e) => {
+          e.currentTarget.style.display = "none";
+        }}
+      />
+
+      <p className="text-gray-400 text-[12px] leading-relaxed max-w-xs">
+        Helping learners achieve their language goals with personalized
+        roadmaps and smarter preparation.
+      </p>
 
     </div>
-  );
+
+    {/* QUICK LINKS */}
+    <div className="col-span-12 lg:col-span-3 flex flex-col gap-2">
+
+      <h4 className="font-bold text-[13px] text-gray-700">
+        Quick Links
+      </h4>
+
+      <div className="flex flex-col gap-1 text-[12px] text-gray-400">
+        <span className="opacity-70">Home</span>
+        <span className="opacity-70">About Us</span>
+        <span className="opacity-70">Roadmap</span>
+        <span className="opacity-70">Dashboard</span>
+      </div>
+
+    </div>
+
+    {/* SUPPORT */}
+    <div className="col-span-12 lg:col-span-4 flex flex-col gap-2">
+
+      <h4 className="font-bold text-[13px] text-gray-700">
+        Support
+      </h4>
+
+      <div className="flex flex-col gap-1 text-[12px] text-gray-400">
+        <span className="opacity-70">Language Test</span>
+        <span className="opacity-70">Progress Tracker</span>
+        <span className="opacity-70">Contact</span>
+        <span className="opacity-70">FAQ</span>
+      </div>
+
+    </div>
+
+  </div>
+
+  <div className="w-full text-center border-t border-slate-200/60 pt-3 text-[12px] text-gray-400 font-medium">
+    © 2026 Lateron. All Rights Reserved. Your Language Learning Partner.
+  </div>
+
+</footer>
+
+</div>
+
+);
 };
 
 export default Generate;

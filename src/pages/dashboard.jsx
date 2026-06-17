@@ -188,9 +188,9 @@ function AboutSection() {
               confident on your journey.
             </p>
           </div>
-<<<<<<< HEAD
+
           {/* Learn More About Us button removed per request */}
-=======
+
 
           <button
             onClick={() => navigate("/register")}
@@ -198,7 +198,6 @@ function AboutSection() {
           >
             Learn More About Us
           </button>
->>>>>>> 753db4cf2ec0f5b1499383041a2724cb5e82d133
         </div>
 
         <div className="relative w-full h-[400px] flex items-center justify-center">
