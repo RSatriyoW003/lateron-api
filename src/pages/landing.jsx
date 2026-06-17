@@ -1,17 +1,7 @@
-import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import Navbar from "../components/navbar";
 import Hero from "../components/hero";
 
 export default function Landing() {
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    if (localStorage.getItem("isLoggedIn") === "true") {
-      navigate("/dashboard");
-    }
-  }, []);
-
   return (
     <div className="
       min-h-screen

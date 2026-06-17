@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import logo from "../assets/logo.png"; // Sesuaikan path logo kamu
 import l2 from "../assets/logo2.jpg";  // Sesuaikan path logo footer kamu
@@ -11,8 +11,115 @@ export default function Profile() {
 
   // 2. Ambil data user dari localStorage
   const savedUser = JSON.parse(localStorage.getItem("user") || "{}");
-  const savedProfile = JSON.parse(localStorage.getItem("profile") || "{}");
+  const [savedProfile, setSavedProfile] = useState({});
+  const userId = localStorage.getItem("user_id");
   const savedRoadmap = JSON.parse(localStorage.getItem("roadmap") || "{}");
+
+  const selectedTestType = savedRoadmap.testType || "IELTS";
+  const getUserEmail = () => {
+    try {
+      const user = JSON.parse(localStorage.getItem("user") || "{}");
+      return user?.email || "";
+    } catch {
+      return "";
+    }
+  };
+  const emailKey = getUserEmail() ? encodeURIComponent(getUserEmail()) : "guest";
+  const roadmapStorageKey = `roadmap_${emailKey}_${selectedTestType}`;
+  const userRoadmapData = JSON.parse(localStorage.getItem(roadmapStorageKey) || "[]");
+  const userRoadmapWeeks = Array.isArray(userRoadmapData) ? userRoadmapData : [];
+
+  const totalStudyDays = userRoadmapWeeks.reduce(
+    (sum, week) => sum + (week.days?.length || 0),
+    0
+  );
+
+  const completedStudyDays = userRoadmapWeeks.reduce(
+    (sum, week) => sum + (week.days?.filter((day) => day.completed).length || 0),
+    0
+  );
+
+  const currentProgress = totalStudyDays > 0 ? Math.round((completedStudyDays / totalStudyDays) * 100) : 0;
+  const sessionsCompleted = completedStudyDays;
+
+  const computeDaysUntil = (dateString) => {
+  if (!dateString) return "-";
+
+  const [year, month, day] = dateString.split("-").map(Number);
+
+  const targetDate = new Date(year, month - 1, day);
+  const today = new Date();
+
+  today.setHours(0, 0, 0, 0);
+  targetDate.setHours(0, 0, 0, 0);
+
+  const diffTime = targetDate.getTime() - today.getTime();
+
+  return Math.max(
+    0,
+    Math.round(diffTime / (1000 * 60 * 60 * 24))
+  );
+};
+
+  const formatDate = (iso) => {
+    if (!iso) return "-";
+    try {
+      const d = new Date(iso);
+      return d.toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" });
+    } catch (e) {
+      return iso;
+    }
+  };
+
+  const testDate =
+  savedRoadmap?.testDate &&
+  savedRoadmap.testDate.trim() !== ""
+    ? savedRoadmap.testDate
+    : null;
+
+const daysUntilTest = testDate
+  ? computeDaysUntil(testDate)
+  : 0;
+
+  const normalizeText = (value) => (value || "").toString().toLowerCase();
+
+  const calculateSkillProgress = (keywords) => {
+    const matchingDays = userRoadmapWeeks.flatMap((week) =>
+      (week.days || []).filter((day) => {
+        const text = normalizeText(`${day.title} ${day.description} ${day.points?.join(" ")}`);
+        return keywords.some((keyword) => text.includes(keyword));
+      })
+    );
+
+    if (matchingDays.length === 0) {
+      return currentProgress;
+    }
+
+    const completed = matchingDays.filter((day) => day.completed).length;
+    return Math.round((completed / matchingDays.length) * 100);
+  };
+
+  const readingProgress = calculateSkillProgress([
+    "reading",
+    "skimming",
+    "scanning",
+    "vocabulary",
+    "comprehension",
+    "contextual",
+    "sentence completion",
+    "reading practice",
+  ]);
+
+  const writingProgress = calculateSkillProgress([
+    "writing",
+    "essay",
+    "proposal",
+    "formal essay",
+    "written expression",
+    "structure",
+    "grammar",
+    "key word transformation",
+  ]);
 
   // 3. STATE DATA INPUT FORM (Untuk Setting Profile)
   const [formData, setFormData] = useState({
@@ -20,37 +127,208 @@ export default function Profile() {
     username: savedProfile.username || "",
     email: savedUser.email || "",
     phone: savedProfile.phone || "",
-    gender: savedProfile.gender || "",
-    birthDate: savedProfile.birthDate || "",
-    status: savedProfile.status || "",
+    pekerjaan: savedProfile.pekerjaan || "",
+    password: savedUser.password || "",
     testDate: savedRoadmap.testDate || savedProfile.testDate || "",
     targetScore: savedRoadmap.targetScore || savedProfile.targetScore || ""
   });
 
+  const [isEditing, setIsEditing] = useState(false);
+  const [usernameAvailable, setUsernameAvailable] = useState(true);
+  const [passwordForm, setPasswordForm] = useState({ current: "", newPass: "", confirm: "" });
+  const [streakNotif, setStreakNotif] = useState(false);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
+
+  // ===== STREAK LOGIC =====
+  const streakLog = (() => {
+    try { return JSON.parse(localStorage.getItem(`streak_log_${emailKey}`) || "[]"); }
+    catch { return []; }
+  })();
+  const todayStr = new Date().toISOString().slice(0, 10);
+  const doneToday = streakLog.includes(todayStr);
+  const currentStreak = (() => {
+    if (!streakLog.length) return 0;
+    const sorted = [...new Set(streakLog)].sort();
+    let streak = 0;
+    const check = new Date(todayStr);
+    if (!doneToday) check.setDate(check.getDate() - 1);
+    while (true) {
+      const ds = check.toISOString().slice(0, 10);
+      if (sorted.includes(ds)) { streak++; check.setDate(check.getDate() - 1); }
+      else break;
+    }
+    return streak;
+  })();
+  // ===== END STREAK =====
+
+  useEffect(() => {
+    try {
+      const list = JSON.parse(localStorage.getItem("usernames") || "[]");
+      if (savedProfile.username && !list.includes(savedProfile.username)) {
+        list.push(savedProfile.username);
+        localStorage.setItem("usernames", JSON.stringify(list));
+      }
+    } catch (e) {
+      localStorage.setItem("usernames", JSON.stringify([]));
+    }
+  }, []);
+
+useEffect(() => {
+  const loadProfile = async () => {
+    try {
+      const response = await fetch(
+        `http://localhost:3000/users/${userId}`
+      );
+
+      const data = await response.json();
+
+      setSavedProfile(data);
+
+      setFormData({
+  fullName: data.name || "",
+  username: data.username || "",
+  email: data.email || "",
+  phone: data.phone || "",
+  pekerjaan: data.pekerjaan || "",
+  password: "",
+
+  testDate:
+    data.test_date
+      ? data.test_date.split("T")[0]
+      : savedRoadmap.testDate || "",
+
+  targetScore:
+    data.target_score ||
+    savedRoadmap.targetScore ||
+    ""
+});
+
+    } catch (error) {
+      console.error("Gagal load profile:", error);
+    }
+  };
+
+  if (userId) {
+    loadProfile();
+  }
+}, [userId]);
+
+  const [profilePhoto, setProfilePhoto] = useState(() => {
+  const saved = localStorage.getItem(`profilePhoto_${emailKey}`) || "";
+
+  if (saved && !saved.startsWith("data:")) {
+    localStorage.removeItem(`profilePhoto_${emailKey}`);
+    return "";
+  }
+
+  return saved;
+});
+
+  const handlePhotoUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const base64String = reader.result;
+      setProfilePhoto(base64String);
+      localStorage.setItem("profilePhoto", base64String);
+    };
+    reader.readAsDataURL(file);
+  };
+
   const [reminder, setReminder] = useState(false);
 
-  const handleSave = () => {
-    localStorage.setItem("profile", JSON.stringify(formData));
+  const handleSave = async () => {
+    const uname = (formData.username || "").toString().trim();
+    if (!uname) {
+      alert("Username tidak boleh kosong");
+      return;
+    }
+
+    const usernames = JSON.parse(localStorage.getItem("usernames") || "[]");
+    const original = savedProfile.username || "";
+    if (usernames.includes(uname) && uname !== original) {
+      alert("Username sudah digunakan, pilih username lain.");
+      return;
+    }
+
+    const updated = usernames.filter((u) => u !== original);
+    if (!updated.includes(uname)) updated.push(uname);
+    localStorage.setItem("usernames", JSON.stringify(updated));
+
+    const storedUser = JSON.parse(localStorage.getItem("user") || "{}");
+    const storedPassword =
+  storedUser.password_hash || "";
+
+    if (passwordForm.newPass) {
+      if (passwordForm.current !== storedPassword) {
+        alert("Password saat ini tidak cocok.");
+        return;
+      }
+      if (passwordForm.newPass !== passwordForm.confirm) {
+        alert("Password baru dan konfirmasi tidak cocok.");
+        return;
+      }
+      storedUser.password_hash = passwordForm.newPass;
+      localStorage.setItem("user", JSON.stringify(storedUser));
+    }
+
+    const persisted = {
+      fullName: formData.fullName || "",
+      username: uname,
+      phone: formData.phone || "",
+      pekerjaan: formData.pekerjaan || "",
+      testDate: formData.testDate || "",
+      targetScore: formData.targetScore || ""
+    };
+
+    if (passwordForm.newPass) {
+      persisted.lastPasswordChanged = new Date().toISOString();
+    } else if (savedProfile.lastPasswordChanged) {
+      persisted.lastPasswordChanged = savedProfile.lastPasswordChanged;
+    }
+
+    await fetch(
+  `http://localhost:3000/users/${userId}`,
+  {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+  name: formData.fullName,
+  username: formData.username,
+  phone: formData.phone,
+  pekerjaan: formData.pekerjaan,
+  test_date: formData.testDate,
+  target_score: formData.targetScore,
+  password: passwordForm.newPass || null
+}),
+  }
+);
+
+    setPasswordForm({ current: "", newPass: "", confirm: "" });
     alert("Profil berhasil disimpan!");
+    setIsEditing(false);
   };
-  const [streakNotif, setStreakNotif] = useState(false);
 
   return (
     <div className="min-h-screen bg-white antialiased flex flex-col justify-between font-sans">
       
-      {/* ================= NAVBAR GLOBAL (LOGOUT DIHAPUS) ================= */}
-      <nav className="bg-[#2471A3] flex items-center justify-between px-16 py-4 sticky top-0 z-50 shadow-xs text-white">
-        {/* Sisi Kiri: Logo */}
+      {/* ================= NAVBAR GLOBAL ================= */}
+      <nav className="bg-[#2471A3] flex items-center px-16 py-5 sticky top-0 z-50 shadow-xs text-white">
         <div className="shrink-0 cursor-pointer" onClick={() => navigate("/dashboard")}>
-          <img src={logo} alt="Lateron" className="w-[100px] h-auto object-contain brightness-0 invert" />
+          <img src={logo} alt="Lateron" className="w-[100px] h-auto object-contain brightness-0 invert" style={{ imageRendering: "auto" }} />
         </div>
-        
-        {/* Sisi Kanan: Menu Navigasi */}
-        <div className="flex items-center gap-8 text-[15px] opacity-90">
-          <Link to="/dashboard" className="hover:underline">Home</Link>
-          <Link to="/generate" className="hover:underline">Generate</Link>
-          <Link to="/my-roadmap" className="hover:underline">My Roadmap</Link>
-          <button className="font-bold border-b-2 border-white pb-1 bg-transparent text-white cursor-pointer">Profile</button>
+        <div className="flex-1 flex items-center justify-end gap-6 text-[15px] text-white/70 mr-14">
+          <Link to="/dashboard" className="hover:text-white transition-colors">Home</Link>
+          <span className="w-1 h-1 rounded-full bg-white/40" />
+          <Link to="/generate" className="hover:text-white transition-colors">Generate</Link>
+          <span className="w-1 h-1 rounded-full bg-white/40" />
+          <Link to="/my-roadmap" className="hover:text-white transition-colors">My Roadmap</Link>
+          <span className="w-1 h-1 rounded-full bg-white/40" />
+          <span className="text-white font-semibold">Profile</span>
         </div>
       </nav>
 
@@ -62,7 +340,7 @@ export default function Profile() {
           <div className="flex flex-col gap-2">
             <button
               onClick={() => setActiveTab("dashboard")}
-              className={`w-full text-left px-6 py-3.5 rounded-2xl font-semibold text-[14px] transition-all cursor-pointer ${
+              className={`w-full text-left px-6 py-3.5 rounded-full font-semibold text-[14px] transition-all cursor-pointer ${
                 activeTab === "dashboard"
                   ? "bg-[#2471A3] text-white shadow-xs"
                   : "bg-transparent text-gray-400 hover:bg-gray-50"
@@ -72,7 +350,7 @@ export default function Profile() {
             </button>
             <button
               onClick={() => setActiveTab("setting")}
-              className={`w-full text-left px-6 py-3.5 rounded-2xl font-semibold text-[14px] transition-all cursor-pointer ${
+              className={`w-full text-left px-6 py-3.5 rounded-full font-semibold text-[14px] transition-all cursor-pointer ${
                 activeTab === "setting"
                   ? "bg-[#2471A3] text-white shadow-xs"
                   : "bg-transparent text-gray-400 hover:bg-gray-50"
@@ -82,9 +360,8 @@ export default function Profile() {
             </button>
           </div>
 
-          {/* Tombol Log Out Bawah Kiri Oval Sesuai Gambar */}
           <button 
-            onClick={() => { localStorage.removeItem("isLoggedIn"); navigate("/"); }}
+            onClick={() => setShowLogoutModal(true)}
             className="w-full border border-gray-300 text-gray-400 hover:text-red-500 hover:border-red-500 text-[14px] py-2.5 rounded-full bg-transparent transition-all cursor-pointer text-center"
           >
             Log Out
@@ -96,17 +373,32 @@ export default function Profile() {
           
           {/* USER PROFILE HEADER CARD */}
           <div className="flex items-center gap-5 mb-8">
-            <img 
-              src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&h=150&q=80" 
-              alt="Avatar" 
-              className="w-20 h-20 rounded-full object-cover border border-gray-100"
-            />
+            <label className="relative group cursor-pointer">
+              {profilePhoto ? (
+                <img
+                  src={profilePhoto}
+                  alt="Avatar"
+                  className="w-20 h-20 rounded-full object-cover border border-gray-100 group-hover:opacity-70 transition-opacity"
+                />
+              ) : (
+                <div className="w-20 h-20 rounded-full bg-[#D6EAF8] border border-gray-100 flex items-center justify-center group-hover:opacity-70 transition-opacity">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="w-10 h-10 text-[#2471A3]" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/>
+                  </svg>
+                </div>
+              )}
+              <input type="file" accept="image/*" onChange={handlePhotoUpload} className="hidden" />
+              <div className="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-white text-[12px] font-semibold">
+                Edit
+              </div>
+            </label>
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="text-[26px] font-bold text-[#143F5E]">{formData.fullName || formData.email || "User"}</h2>
-                <span className="text-gray-400 cursor-pointer text-lg hover:text-[#2471A3]">📝</span>
+                <h2 className="text-[26px] font-bold text-[#143F5E]">
+  {formData.fullName || "User"}
+</h2>
               </div>
-              <p className="text-[14px] text-gray-400 font-medium">Mahasiswa &bull; IELTS</p>
+              <p className="text-[14px] text-gray-400 font-medium">{formData.pekerjaan || "Mahasiswa"} &bull; {savedRoadmap.testType || "IELTS"}</p>
             </div>
           </div>
 
@@ -119,36 +411,38 @@ export default function Profile() {
                 Track your study progress, monitor your performance, and stay on the right path toward your target language test score.
               </p>
 
-              {/* Grid 4 Progress Cards */}
               <div className="grid grid-cols-4 gap-4 mb-10">
-                <div className="bg-[#E8F8F5] p-5 rounded-3xl">
-                  <p className="text-[13px] text-emerald-800 font-semibold mb-3">Current Progress</p>
-                  <p className="text-[36px] font-bold text-[#2ECC71]">42%</p>
+                <div className="bg-white p-5 rounded-3xl shadow-sm border border-gray-100">
+                  <p className="text-[13px] text-gray-500 font-semibold mb-3">Current Progress</p>
+                  <p className="text-[36px] font-bold text-[#2ECC71]">{currentProgress}%</p>
                 </div>
-                <div className="bg-[#FADBD8] p-5 rounded-3xl">
-                  <p className="text-[13px] text-red-800 font-semibold mb-3">Study Streak</p>
-                  <p className="text-[36px] font-bold text-[#E74C3C]">7 <span className="text-[16px] font-semibold">Hari</span></p>
+                <div className="bg-white p-5 rounded-3xl shadow-sm border border-gray-100">
+                  <p className="text-[13px] text-gray-500 font-semibold mb-3">Study Streak</p>
+                  <p className={`text-[36px] font-bold ${doneToday ? "text-[#E74C3C]" : "text-gray-300"}`}>
+                    {currentStreak} <span className="text-[16px] font-semibold text-gray-400">Hari</span>
+                  </p>
                 </div>
-                <div className="bg-[#EBF5FB] p-5 rounded-3xl">
-                  <p className="text-[13px] text-blue-800 font-semibold mb-3">Sesi Selesai</p>
-                  <p className="text-[36px] font-bold text-[#3498DB]">12 <span className="text-[16px] font-semibold">Sesi</span></p>
+                <div className="bg-white p-5 rounded-3xl shadow-sm border border-gray-100">
+                  <p className="text-[13px] text-gray-500 font-semibold mb-3">Sesi Selesai</p>
+                  <p className="text-[36px] font-bold text-[#3498DB]">
+                    {sessionsCompleted} <span className="text-[16px] font-semibold text-gray-500">Sesi</span>
+                  </p>
                 </div>
-                <div className="bg-[#FDEBD0] p-5 rounded-3xl">
-                  <p className="text-[13px] text-amber-800 font-semibold mb-3">Hari Menuju Test</p>
-                  <p className="text-[36px] font-bold text-[#E67E22]">18 <span className="text-[16px] font-semibold">Hari</span></p>
+                <div className="bg-white p-5 rounded-3xl shadow-sm border border-gray-100">
+                  <p className="text-[13px] text-gray-500 font-semibold mb-3">Hari Menuju Test</p>
+                  <p className="text-[36px] font-bold text-[#E67E22]">
+                    {daysUntilTest} <span className="text-[16px] font-semibold text-gray-500">Hari</span>
+                  </p>
                 </div>
               </div>
 
-              {/* Section Detail Progress Skill Mingguan */}
               <h4 className="text-[16px] font-bold text-[#143F5E] mb-1">This Week's Progress</h4>
               <p className="text-[13px] text-gray-400 mb-6">See how much you've completed this week.</p>
 
               <div className="space-y-4 max-w-3xl mb-10">
                 {[
-                  { skill: "Listening Practice", val: 80, color: "bg-[#2ECC71]" },
-                  { skill: "Reading Practice", val: 65, color: "bg-[#E67E22]" },
-                  { skill: "Writing Practice", val: 70, color: "bg-[#F1C40F]" },
-                  { skill: "Speaking Practice", val: 60, color: "bg-[#E74C3C]" },
+                  { skill: "Reading Practice", val: readingProgress, color: "bg-[#E67E22]" },
+                  { skill: "Writing Practice", val: writingProgress, color: "bg-[#F1C40F]" },
                 ].map((item, idx) => (
                   <div key={idx} className="flex items-center gap-4">
                     <span className="w-32 text-[13px] font-medium text-gray-500">{item.skill}</span>
@@ -160,7 +454,7 @@ export default function Profile() {
                 ))}
               </div>
 
-              <button className="bg-[#2471A3] text-white text-[14px] font-semibold px-8 py-3 rounded-full hover:bg-[#1C5D86] transition-colors shadow-md cursor-pointer">
+              <button onClick={() => navigate("/my-roadmap")} className="bg-[#2471A3] text-white text-[14px] font-semibold px-8 py-3 rounded-full hover:bg-[#1C5D86] transition-colors shadow-md cursor-pointer">
                 Continue Learning
               </button>
             </div>
@@ -169,46 +463,55 @@ export default function Profile() {
             <div>
               <h3 className="text-[18px] font-bold text-[#143F5E] border-b border-gray-100 pb-3 mb-6">Informasi pribadi</h3>
               
-              {/* Grid Input Fields dengan rounded-2xl & placeholder abu-abu */}
               <div className="grid grid-cols-2 gap-x-8 gap-y-5 max-w-4xl mb-8">
                 <div>
                   <label className="block text-[13px] font-bold text-[#143F5E] mb-2">Nama Lengkap</label>
-                  <input 
-                    type="text" value={formData.fullName}
-                    onChange={(e) => setFormData({...formData, fullName: e.target.value})}
-                    className="w-full border border-gray-200 rounded-2xl px-5 py-3 text-[14px] focus:outline-none focus:border-[#2471A3] text-gray-700 font-medium"
-                  />
+                  {isEditing ? (
+                    <input type="text" value={formData.fullName} onChange={(e) => setFormData({...formData, fullName: e.target.value})} className="w-full border border-gray-200 rounded-full px-5 py-3 text-[14px] focus:outline-none focus:border-[#2471A3] text-gray-700 font-medium" />
+                  ) : (
+                    <input type="text" value={formData.fullName || "-"} disabled className="w-full border border-gray-100 rounded-full px-5 py-3 text-[14px] bg-gray-50 text-gray-400 font-medium" />
+                  )}
                 </div>
                 <div>
                   <label className="block text-[13px] font-bold text-[#143F5E] mb-2">Username</label>
                   <div className="relative">
-                    <input 
-                      type="text" value={formData.username}
-                      onChange={(e) => setFormData({...formData, username: e.target.value})}
-                      className="w-full border border-gray-200 rounded-2xl px-5 py-3 text-[14px] bg-white text-gray-700 pr-24 focus:outline-none focus:border-[#2471A3] font-medium"
-                    />
-                    <span className="absolute right-5 top-1/2 -translate-y-1/2 text-emerald-500 text-[13px] font-medium">Tersedia</span>
+                    {isEditing ? (
+                      <>
+                        <input 
+                          type="text" value={formData.username}
+                          onChange={(e) => { setFormData({...formData, username: e.target.value});
+                            const uname = (e.target.value||"").toString().trim();
+                            const list = JSON.parse(localStorage.getItem('usernames')||'[]');
+                            setUsernameAvailable(!list.includes(uname) || uname === (savedProfile.username||""));
+                          }}
+                          className="w-full border border-gray-200 rounded-full px-5 py-3 text-[14px] text-gray-700 pr-24 focus:outline-none font-medium"
+                        />
+                        <span className={`absolute right-5 top-1/2 -translate-y-1/2 text-[13px] font-medium ${usernameAvailable ? 'text-emerald-500' : 'text-red-600'}`}>{usernameAvailable ? 'Tersedia' : 'Tidak tersedia'}</span>
+                      </>
+                    ) : (
+                      <input type="text" value={formData.username || "-"} disabled className="w-full border border-gray-100 rounded-full px-5 py-3 text-[14px] bg-gray-50 text-gray-400 font-medium" />
+                    )}
                   </div>
                 </div>
                 <div>
+                  <label className="block text-[13px] font-bold text-[#143F5E] mb-2">Pekerjaan</label>
+                  {isEditing ? (
+                    <input type="text" placeholder="Masukkan pekerjaan" value={formData.pekerjaan} onChange={(e) => setFormData({...formData, pekerjaan: e.target.value})} className="w-full border border-gray-200 rounded-full px-5 py-3 text-[14px] focus:outline-none focus:border-[#2471A3] text-gray-700 font-medium placeholder-gray-300" />
+                  ) : (
+                    <input type="text" value={formData.pekerjaan || "-"} disabled className="w-full border border-gray-100 rounded-full px-5 py-3 text-[14px] bg-gray-50 text-gray-400 font-medium" />
+                  )}
+                </div>
+                <div>
                   <label className="block text-[13px] font-bold text-[#143F5E] mb-2">Email</label>
-                  <input type="email" value={formData.email} disabled className="w-full border border-gray-100 rounded-2xl px-5 py-3 text-[14px] bg-gray-50 text-gray-400 font-medium" />
+                  <input type="email" value={formData.email} disabled className="w-full border border-gray-100 rounded-full px-5 py-3 text-[14px] bg-gray-50 text-gray-400 font-medium" />
                 </div>
                 <div>
                   <label className="block text-[13px] font-bold text-[#143F5E] mb-2">Nomor Handphone</label>
-                  <input type="text" placeholder="081x - xxxx - xxxx" value={formData.phone} onChange={(e) => setFormData({...formData, phone: e.target.value})} className="w-full border border-gray-200 rounded-2xl px-5 py-3 text-[14px] focus:outline-none focus:border-[#2471A3] text-gray-700 font-medium placeholder-gray-300" />
-                </div>
-                <div>
-                  <label className="block text-[13px] font-bold text-[#143F5E] mb-2">Jenis Kelamin</label>
-                  <input type="text" placeholder="081x - xxxx - xxxx" value={formData.gender} onChange={(e) => setFormData({...formData, gender: e.target.value})} className="w-full border border-gray-200 rounded-2xl px-5 py-3 text-[14px] focus:outline-none focus:border-[#2471A3] text-gray-700 font-medium placeholder-gray-300" />
-                </div>
-                <div>
-                  <label className="block text-[13px] font-bold text-[#143F5E] mb-2">Tanggal Lahir</label>
-                  <input type="text" placeholder="081x - xxxx - xxxx" value={formData.birthDate} onChange={(e) => setFormData({...formData, birthDate: e.target.value})} className="w-full border border-gray-200 rounded-2xl px-5 py-3 text-[14px] focus:outline-none focus:border-[#2471A3] text-gray-700 font-medium placeholder-gray-300" />
-                </div>
-                <div className="col-span-2">
-                  <label className="block text-[13px] font-bold text-[#143F5E] mb-2">Pekerjaan / Status</label>
-                  <input type="text" placeholder="081x - xxxx - xxxx" value={formData.status} onChange={(e) => setFormData({...formData, status: e.target.value})} className="w-full border border-gray-200 rounded-2xl px-5 py-3 text-[14px] focus:outline-none focus:border-[#2471A3] text-gray-700 font-medium placeholder-gray-300" />
+                  {isEditing ? (
+                    <input type="text" placeholder="081x - xxxx - xxxx" value={formData.phone} onChange={(e) => setFormData({...formData, phone: e.target.value})} className="w-full border border-gray-200 rounded-full px-5 py-3 text-[14px] focus:outline-none focus:border-[#2471A3] text-gray-700 font-medium placeholder-gray-300" />
+                  ) : (
+                    <input type="text" value={(function(){ const p=formData.phone||""; if(!p) return "-"; if(p.length<=6) return p; const start=p.slice(0,4); const end=p.slice(-3); return `${start} **** ${end}` })()} disabled className="w-full border border-gray-100 rounded-full px-5 py-3 text-[14px] bg-gray-50 text-gray-400 font-medium" />
+                  )}
                 </div>
               </div>
 
@@ -219,26 +522,22 @@ export default function Profile() {
               <div className="grid grid-cols-2 gap-8 max-w-4xl mb-8">
                 <div>
                   <label className="block text-[13px] font-bold text-gray-400 mb-2">Tanggal tes</label>
-                  <input type="text" value={formData.testDate} onChange={(e) => setFormData({...formData, testDate: e.target.value})} className="w-full bg-[#EBF5FB] border-none rounded-2xl px-5 py-3.5 text-[14px] font-semibold text-[#143F5E] text-center focus:outline-none" />
+                  <input type="text" value={formData.testDate} onChange={(e) => setFormData({...formData, testDate: e.target.value})} className="w-full bg-[#EBF5FB] border-none rounded-full px-5 py-3.5 text-[14px] font-semibold text-[#143F5E] text-center focus:outline-none" />
                 </div>
                 <div>
                   <label className="block text-[13px] font-bold text-gray-400 mb-2">Target score</label>
-                  <input type="text" value={formData.targetScore} onChange={(e) => setFormData({...formData, targetScore: e.target.value})} className="w-full bg-[#EBF5FB] border-none rounded-2xl px-5 py-3.5 text-[14px] font-semibold text-[#143F5E] text-center focus:outline-none" />
+                  <input type="text" value={formData.targetScore} onChange={(e) => setFormData({...formData, targetScore: e.target.value})} className="w-full bg-[#EBF5FB] border-none rounded-full px-5 py-3.5 text-[14px] font-semibold text-[#143F5E] text-center focus:outline-none" />
                 </div>
               </div>
 
-              {/* Toggle Switch Preferences - Kustomisasi mirip asli */}
+              {/* Toggle Switch Preferences */}
               <div className="max-w-4xl space-y-5 mb-10">
                 <div className="flex justify-between items-center">
                   <div>
                     <p className="text-[14px] font-bold text-[#143F5E]">Reminder belajar</p>
                     <p className="text-[12px] text-gray-400">Setiap hari 19.00 WIB</p>
                   </div>
-                  {/* Toggle Switch Button */}
-                  <button 
-                    onClick={() => setReminder(!reminder)}
-                    className={`w-12 h-6 flex items-center rounded-full p-1 cursor-pointer transition-colors duration-300 ${reminder ? "bg-[#143F5E]" : "bg-black"}`}
-                  >
+                  <button onClick={() => setReminder(!reminder)} className={`w-12 h-6 flex items-center rounded-full p-1 cursor-pointer transition-colors duration-300 ${reminder ? "bg-[#143F5E]" : "bg-black"}`}>
                     <div className={`bg-white w-4 h-4 rounded-full shadow-sm transform transition-transform duration-300 ${reminder ? "translate-x-6" : "translate-x-0"}`} />
                   </button>
                 </div>
@@ -248,11 +547,7 @@ export default function Profile() {
                     <p className="text-[14px] font-bold text-[#143F5E]">Notifikasi streak</p>
                     <p className="text-[12px] text-gray-400">Ingatkan jika streak akan putus</p>
                   </div>
-                  {/* Toggle Switch Button */}
-                  <button 
-                    onClick={() => setStreakNotif(!streakNotif)}
-                    className={`w-12 h-6 flex items-center rounded-full p-1 cursor-pointer transition-colors duration-300 ${streakNotif ? "bg-[#143F5E]" : "bg-black"}`}
-                  >
+                  <button onClick={() => setStreakNotif(!streakNotif)} className={`w-12 h-6 flex items-center rounded-full p-1 cursor-pointer transition-colors duration-300 ${streakNotif ? "bg-[#143F5E]" : "bg-black"}`}>
                     <div className={`bg-white w-4 h-4 rounded-full shadow-sm transform transition-transform duration-300 ${streakNotif ? "translate-x-6" : "translate-x-0"}`} />
                   </button>
                 </div>
@@ -261,32 +556,41 @@ export default function Profile() {
               {/* Keamanan Akun */}
               <h3 className="text-[18px] font-bold text-[#143F5E] border-b border-gray-100 pb-3 mb-6">Keamanan akun</h3>
               <div className="max-w-4xl space-y-5">
-                <div className="flex justify-between items-center">
-                  <div>
-                    <p className="text-[14px] font-bold text-[#143F5E]">Ganti password</p>
-                    <p className="text-[12px] text-gray-400">Terakhir 15 hari yang lalu</p>
-                  </div>
-                  {/* Icon Warning Bulat */}
-                  <div className="w-6 h-6 rounded-full border-2 border-gray-400 flex items-center justify-center text-gray-400 text-[12px] font-bold cursor-pointer hover:border-gray-600 hover:text-gray-600">!</div>
+                <div>
+                  <label className="block text-[13px] font-bold text-[#143F5E] mb-2">Ganti password</label>
+                  {isEditing ? (
+                    <div className="grid grid-cols-3 gap-3">
+                      <input type="password" placeholder="Password saat ini" value={passwordForm.current} onChange={(e) => setPasswordForm({...passwordForm, current: e.target.value})} className="w-full border border-gray-200 rounded-full px-4 py-2 text-[14px] focus:outline-none focus:border-[#2471A3] text-gray-700 font-medium" />
+                      <input type="password" placeholder="Password baru" value={passwordForm.newPass} onChange={(e) => setPasswordForm({...passwordForm, newPass: e.target.value})} className="w-full border border-gray-200 rounded-full px-4 py-2 text-[14px] focus:outline-none focus:border-[#2471A3] text-gray-700 font-medium" />
+                      <input type="password" placeholder="Ulangi password baru" value={passwordForm.confirm} onChange={(e) => setPasswordForm({...passwordForm, confirm: e.target.value})} className="w-full border border-gray-200 rounded-full px-4 py-2 text-[14px] focus:outline-none focus:border-[#2471A3] text-gray-700 font-medium" />
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-between">
+                      <input type="password" value={"•".repeat(8)} disabled className="w-1/2 border border-gray-100 rounded-full px-5 py-3 text-[14px] bg-gray-50 text-gray-400 font-medium" />
+                      <span className="text-[13px] text-gray-400">Terakhir diganti: {savedProfile.lastPasswordChanged ? new Date(savedProfile.lastPasswordChanged).toLocaleDateString() : "-"}</span>
+                    </div>
+                  )}
                 </div>
                 <div className="flex justify-between items-center">
                   <div>
                     <p className="text-[14px] font-bold text-[#143F5E]">Verifikasi email</p>
                     <p className="text-[12px] text-emerald-500 font-medium">Email sudah terverifikasi</p>
                   </div>
-                  {/* Checkmark Hijau */}
                   <span className="text-emerald-500 font-bold text-xl mr-1">✓</span>
                 </div>
               </div>
 
-              {/* Tombol Save */}
+              {/* Tombol Action Edit/Save */}
               <div className="mt-8">
-                <button
-                  onClick={handleSave}
-                  className="bg-[#2471A3] text-white text-[14px] font-semibold px-10 py-3 rounded-full hover:bg-[#1C5D86] transition-colors shadow-md cursor-pointer"
-                >
-                  Simpan Perubahan
-                </button>
+                {!isEditing ? (
+                  <button onClick={() => setIsEditing(true)} className="bg-[#2471A3] text-white text-[14px] font-semibold px-10 py-3 rounded-full hover:bg-[#1C5D86] transition-colors shadow-md cursor-pointer">
+                    Edit
+                  </button>
+                ) : (
+                  <button onClick={handleSave} className="bg-[#2471A3] text-white text-[14px] font-semibold px-10 py-3 rounded-full hover:bg-[#1C5D86] transition-colors shadow-md cursor-pointer">
+                    Simpan Perubahan
+                  </button>
+                )}
               </div>
 
             </div>
@@ -307,13 +611,13 @@ export default function Profile() {
           <div>
             <p className="text-[14px] font-bold text-[#143F5E] mb-4">Quick Links</p>
             {["Home", "About Us", "Roadmap", "Dashboard"].map((l) => (
-              <button key={l} onClick={() => navigate("/my-roadmap")} className="block text-[13px] text-[#5A92B5] mb-2.5 hover:text-[#2471A3] bg-transparent p-0 border-none transition-colors cursor-pointer">{l}</button>
+              <button key={l} disabled className="block text-[13px] text-[#5A92B5] mb-2.5 bg-transparent p-0 border-none transition-colors cursor-default opacity-70">{l}</button>
             ))}
           </div>
           <div>
             <p className="text-[14px] font-bold text-[#143F5E] mb-4">Support</p>
             {["Language Test", "Progress Tracker", "Contact", "FAQ"].map((l) => (
-              <Link key={l} to="/dashboard" className="block text-[13px] text-[#5A92B5] mb-2.5 hover:text-[#2471A3] transition-colors">{l}</Link>
+              <span key={l} className="block text-[13px] text-[#5A92B5] mb-2.5 transition-colors opacity-70 cursor-default">{l}</span>
             ))}
           </div>
         </div>
@@ -324,6 +628,30 @@ export default function Profile() {
         </div>
       </footer>
 
+      {/* ================= MODAL LOGOUT ================= */}
+      {showLogoutModal && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl p-6 w-[320px] shadow-lg text-center">
+            <h2 className="text-[16px] font-bold text-[#143F5E] mb-2">Konfirmasi Logout</h2>
+            <p className="text-[13px] text-gray-500 mb-6">Apakah kamu yakin ingin logout?</p>
+            <div className="flex justify-center gap-3">
+              <button onClick={() => setShowLogoutModal(false)} className="px-5 py-2 rounded-full border border-gray-300 text-gray-500 text-[13px] hover:bg-gray-100">
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  localStorage.removeItem("isLoggedIn");
+                  setShowLogoutModal(false);
+                  navigate("/");
+                }}
+                className="px-5 py-2 rounded-full bg-red-500 text-white text-[13px] hover:bg-red-600"
+              >
+                Log out
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

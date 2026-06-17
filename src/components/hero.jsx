@@ -42,7 +42,7 @@ export default function Hero() {
 
         {/* CTA */}
         <button
-          onClick={() => navigate("/dashboard")}
+          onClick={() => navigate("/login")}
           className="
             bg-[#2F7BAF] px-8 py-3.5 rounded-full
             text-white text-[15px] font-medium

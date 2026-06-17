@@ -1,6 +1,6 @@
 import { useNavigate, Link } from "react-router-dom";
 import React from 'react';
-import logo from "../assets/logo.png";
+import logo2 from "../assets/logo2.jpg";
 import fotoSiswa from "../assets/cebu.png";
 import fotoLaptop from "../assets/celap.png";
 import fotoWisuda from "../assets/cewi.png";
@@ -37,7 +37,7 @@ function Navbar({ bgTransparent }) {
     <nav className={`flex items-center px-16 py-5 sticky top-0 z-50 transition-all ${bgTransparent ? 'bg-transparent' : 'bg-white/90 backdrop-blur-md border-b border-gray-100'}`}>
       <div className="shrink-0">
         <img 
-          src={logo} 
+          src={logo2} 
           alt="Lateron" 
           className="w-[100px] h-auto object-contain" 
           style={{ imageRendering: "auto" }}
@@ -53,23 +53,6 @@ function Navbar({ bgTransparent }) {
         <span className="w-1 h-1 rounded-full bg-[#2571A3]/40" />
         <Link to="/profile" className="hover:text-[#1B4F72] transition-colors">Profile</Link>
       </div>
-
-      {!isLoggedIn && (
-        <div className="flex items-center gap-5 shrink-0">
-          <button
-            onClick={() => navigate("/login")}
-            className="text-[15px] text-[#1B4F72] font-semibold hover:opacity-75 transition-opacity"
-          >
-            Log In
-          </button>
-          <button
-            onClick={() => navigate("/register")}
-            className="bg-[#1B4F72] text-white text-[15px] font-semibold px-6 py-2.5 rounded-full hover:bg-[#163f5c] transition-colors shadow-sm"
-          >
-            Get Started
-          </button>
-        </div>
-      )}
     </nav>
   );
 }
@@ -204,9 +187,7 @@ function AboutSection() {
               confident on your journey.
             </p>
           </div>
-          <button onClick={() => navigate("/register")} className="bg-[#1B4F72] text-white text-[14px] font-semibold px-7 py-3 rounded-full hover:bg-[#163f5c] transition-colors shadow-sm mt-4">
-            Learn More About Us
-          </button>
+          {/* Learn More About Us button removed per request */}
         </div>
 
         <div className="relative w-full h-[400px] flex items-center justify-center">
@@ -450,25 +431,13 @@ function CTAFooter() {
           <div>
             <p className="text-[14px] font-bold text-[#143F5E] mb-4">Quick Links</p>
             {["Home", "About Us", "Roadmap", "Dashboard"].map((l) => (
-              <Link 
-                key={l} 
-                to={routeMapping[l] || "/"} 
-                className="block text-[13px] text-[#5A92B5] mb-2.5 hover:text-[#2471A3] cursor-pointer transition-colors"
-              >
-                {l}
-              </Link>
+              <span key={l} className="block text-[13px] text-[#5A92B5] mb-2.5 opacity-70 cursor-default">{l}</span>
             ))}
           </div>
           <div>
             <p className="text-[14px] font-bold text-[#143F5E] mb-4">Support</p>
             {["Language Test", "Progress Tracker", "Contact", "FAQ"].map((l) => (
-              <Link 
-                key={l} 
-                to={routeMapping[l] || "/"} 
-                className="block text-[13px] text-[#5A92B5] mb-2.5 hover:text-[#2471A3] cursor-pointer transition-colors"
-              >
-                {l}
-              </Link>
+              <span key={l} className="block text-[13px] text-[#5A92B5] mb-2.5 opacity-70 cursor-default">{l}</span>
             ))}
           </div>
         </div>

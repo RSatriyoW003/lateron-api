@@ -1,29 +1,25 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import logo from "../assets/logo.png"; // Sesuaikan dengan path file logo kamu
 import l2 from "../assets/logo2.jpg";  // Sesuaikan dengan path file logo footer kamu
 
-// ================= SIMULASI PENGAMBILAN PROFILE USER =================
-// Ubah string di bawah ini ke: "TOEFL", "JLPT", "HSK", "TOPIK", atau "CAE" 
-// untuk melihat seluruh struktur minggu dan materi harian berubah secara otomatis.
-const TARGET_TEST_FROM_PROFILE = "IELTS";
+// ================= DATA MASTER SILABUS AKAN DIMUAT BERDASARKAN STATE TARGETTEST =================
 
 // ================= DATA MASTER SILABUS 4 MINGGU (6 JENIS TES) =================
 const ROADMAP_DICTIONARY = {
   IELTS: [
     {
-      id: 1,
-      title: "Simple Present Tense & Speaking Foundation",
-      weekLabel: "Minggu 1",
-      desc: "Pelajari bagaimana menyatakan fakta ilmiah, rutinitas sehari-hari, dan general truths yang sangat krusial untuk mendongkrak skor grammar dasar Anda.",
-      progress: 100,
-      days: [
+      "title": "Grammar Foundation & Sentence Structures",
+      "weekLabel": "Minggu 1",
+      "desc": "Membangun fondasi tata bahasa dasar yang kokoh, berfokus pada keselarasan kalimat tunggal dan struktur dasar penulisan akademik.",
+      "progress": 100,
+      "days": [
         {
-          id: 1, label: "Hari 1", title: "Introduction to Simple Present",
-          description: "Hari pertama berfokus pada pemahaman dasar kapan kita harus menggunakan Simple Present Tense dalam tes IELTS, terutama untuk menceritakan fakta ilmiah, rutinitas, dan general truths.",
-          points: ["Memahami fungsi utama Simple Present Tense", "Membedakan antara kalimat fakta (fakta umum) dan kebiasaan (routines)", "Mengenal penanda waktu dasar (every day, always, usually)", "Analisis penggunaan Present Tense pada IELTS Writing Task 1 (fakta grafik)"],
-          formula: "Subject + Verb 1 (s/es) + Object / Complement",
-          examples: ["The sun rises in the east (Fakta ilmiah).", "I prepare for the IELTS test every morning (Rutinitas).", "Water boils at 100 degrees Celsius (General truth)."]
+          "id": 1, "label": "Hari 1", "title": "Subject-Verb Agreement",
+          "description": "Memastikan kata kerja selalu searas dengan subjek tunggal atau jamak dalam kalimat.",
+          "points": ["Memahami subjek tunggal & jamak", "Menghindari kesalahan dasar S-V di Writing Task 2"],
+          "formula": "Singular Subject + Verb(s/es) / Plural Subject + Verb 1",
+          "examples": ["The government plays a crucial role.", "Local authorities disagree on the policy."]
         },
         {
           id: 2, label: "Hari 2", title: "Subject & Verb Basics",
@@ -485,25 +481,376 @@ const ROADMAP_DICTIONARY = {
   ]
 };
 
+const ROADMAP_TEMPLATES = {
+  IELTS: {
+    1: [
+      "Introduction to Simple Present",
+      "Subject-Verb Agreement in Present",
+      "He/She/It Rules for Present",
+      "Negative Sentences with Do/Does",
+      "Questions & WH-Forms",
+      "Adverbs of Frequency",
+      "Present Tense Mixed Practice"
+    ],
+    2: [
+      "Regular vs Irregular Past Verbs",
+      "Past Continuous Interruptions",
+      "Past Simple Storytelling",
+      "Sequence of Past Events",
+      "Reported Speech Basics",
+      "Historical Reading Practice",
+      "Past Tense Mixed Review"
+    ],
+    3: [
+      "Skimming for Main Ideas",
+      "Scanning for Keywords",
+      "Paraphrase and MCQ Practice",
+      "False vs Not Given Questions",
+      "Inference from Academic Texts",
+      "Longer Reading Comprehension",
+      "Reading Strategy Evaluation"
+    ],
+    4: [
+      "Graph Vocabulary and Trends",
+      "Essay Structure and Cohesion",
+      "Comparing Data in Writing",
+      "Formal Linking Words",
+      "Argument and Opinion Writing",
+      "Review of Academic Lexis",
+      "Writing and Cohesion Mixed Practice"
+    ]
+  },
+  TOEFL: {
+    1: [
+      "Subject + Verb Core Patterns",
+      "Object of Preposition Pitfalls",
+      "Missing Verb Identification",
+      "Missing Subject Identification",
+      "Gerund vs Infinitive Patterns",
+      "Dialogue Sentence Completion",
+      "Sentence Structure Accuracy Review"
+    ],
+    2: [
+      "Coordinate Connectors",
+      "Adverb Clause Connectors",
+      "Appositive Identification",
+      "Subjunctive and Agreement",
+      "Noun Clause Practice",
+      "Combined Clause Reading",
+      "Connector Strategy Review"
+    ],
+    3: [
+      "Short Dialogue Focus",
+      "Second Speaker Clues",
+      "Inference from Speech",
+      "Listening for Detail",
+      "Summary from Dialogue",
+      "Rapid Response Practice",
+      "Listening Strategy Review"
+    ],
+    4: [
+      "Literal Detail Reading",
+      "Vocabulary in Context",
+      "Pronoun Reference Tracking",
+      "Paraphrase Recognition",
+      "Implied Information Practice",
+      "Paragraph Location Reading",
+      "Reading Comprehension Review"
+    ]
+  },
+  JLPT: {
+    1: [
+      "Partikel Wa vs Ga",
+      "Partikel Wo / No / Ni / E",
+      "Desu dan Arimasu Form",
+      "Object Particle Practice",
+      "De / Method Particles",
+      "Jikoshoukai Reading",
+      "JLPT N5 Review"
+    ],
+    2: [
+      "Katakana Loanwords",
+      "Kanji Numbers and Directions",
+      "Basic Verb Kanji",
+      "Adjective Kanji Practice",
+      "Compound N5 Vocabulary",
+      "Simple Sentence Reading",
+      "Kanji and Vocab Review"
+    ],
+    3: [
+      "Finding the Core Verb",
+      "Memo Reading Basics",
+      "Notice and Announcement Reading",
+      "Simple Email Reading",
+      "Inference in Short Texts",
+      "Sentence Structure Review",
+      "Dokkai Strategy Review"
+    ],
+    4: [
+      "Time and Counting Words",
+      "Listening Simple Commands",
+      "Location Vocabulary in Speech",
+      "Question Particle Practice",
+      "Listening Detail Focus",
+      "Short Dialogue Inference",
+      "Choukai Review"
+    ]
+  },
+  HSK: {
+    1: [
+      "Four Tones and SVO Order",
+      "Shì and Basic Copula",
+      "Time Expressions and Zài",
+      "Measure Words Basics",
+      "Basic Sentence Patterns",
+      "Pinyin Reading Practice",
+      "HSK 1 Review"
+    ],
+    2: [
+      "Time Expression Placement",
+      "Xiǎng, Yào, Huì Practice",
+      "Measure Word Challenges",
+      "Modal Verb Sentence Patterns",
+      "Dialogue Completion Practice",
+      "Grammar in Context Reading",
+      "HSK 2 Review"
+    ],
+    3: [
+      "Shì...de Past Focus",
+      "Bǐ Comparison Patterns",
+      "De Complement of Degree",
+      "Narrative Reading Practice",
+      "Character Recognition Practice",
+      "Sentence Pattern Review",
+      "HSK 3 Review"
+    ],
+    4: [
+      "Question Words and Negation",
+      "Méi Past Negation",
+      "Zhe Continuous Aspect",
+      "Reduplication Practice",
+      "Short Dialogue Reading",
+      "Audio Context Matching",
+      "Reading and Listening Review"
+    ]
+  },
+  TOPIK: {
+    1: [
+      "SOV Structure and Eun/Neun",
+      "Object Particle Eul/Reul",
+      "Location Particle E",
+      "Subject-Object Practice",
+      "Sentence Ending Forms",
+      "Particle Reading Practice",
+      "TOPIK 1 Review"
+    ],
+    2: [
+      "Formal Ending Sumnida",
+      "Informal Ending Ayo/Oyo",
+      "Past Tense Forms",
+      "Honorific Forms",
+      "Sentence Composition Practice",
+      "Politeness Reading",
+      "TOPIK 2 Review"
+    ],
+    3: [
+      "Sino-Korean Numbers",
+      "Native Korean Numbers",
+      "Counter Word Practice",
+      "Situational Vocabulary",
+      "Passive and Causative Patterns",
+      "Idiomatic Phrase Practice",
+      "Vocabulary Review"
+    ],
+    4: [
+      "Pamphlet and Info Reading",
+      "Dialogue Matching Practice",
+      "Time and Price Detail Reading",
+      "Paragraph Order Strategy",
+      "Blank Filling Practice",
+      "Implied Meaning Questions",
+      "TOPIK Test Review"
+    ]
+  },
+  CAE: {
+    1: [
+      "Advanced Passive Structures",
+      "Phrasal Verb Transformation",
+      "Word Formation Practice",
+      "Key Word Transformation",
+      "Article Reading Practice",
+      "Sentence Restructuring",
+      "Use of English Review"
+    ],
+    2: [
+      "Fiction Paragraph Analysis",
+      "Multiple Matching Practice",
+      "Gapped Text Strategy",
+      "Vocabulary in Context",
+      "Paraphrase Identification",
+      "Text Comparison Review",
+      "Advanced Reading Review"
+    ],
+    3: [
+      "Formal Transition Vocabulary",
+      "Proposal and Report Style",
+      "Cohesive Device Practice",
+      "Argument Structure",
+      "Essay Writing Review",
+      "Discourse Marker Practice",
+      "CAE Writing Review"
+    ],
+    4: [
+      "Agreement in Listening",
+      "Monologue Analysis",
+      "Speaker Attitude Detection",
+      "Irony and Nuance",
+      "Panel Discussion Comprehension",
+      "Rapid Response Practice",
+      "Listening Strategy Review"
+    ]
+  }
+};
+
+const getDayGroupInfo = (dayIndex) => {
+  if (dayIndex <= 2) return { label: "Pilihan Ganda", note: "Latihan dasar pilihan ganda untuk materi inti." };
+  if (dayIndex <= 4) return { label: "Pilihan Ganda & Isian", note: "Kombinasi soal pilihan ganda dan isian untuk memperdalam konsep." };
+  if (dayIndex <= 6) return { label: "Isian & Reading", note: "Soal isian dan bacaan untuk melatih pemahaman konteks." };
+  return { label: "Campuran - 10 Soal", note: "Evaluasi campuran untuk mengukur penguasaan materi minggu ini." };
+};
+
+const getDefaultDayTemplate = (testType, weekId, dayIndex, week) => {
+  const titlesByWeek = ROADMAP_TEMPLATES[testType]?.[weekId] || [];
+  const title = titlesByWeek[dayIndex - 1] || `${week.title} - Materi Hari ${dayIndex}`;
+  const group = getDayGroupInfo(dayIndex);
+  const description = `Kisi-kisi ${testType} hari ${dayIndex}: ${group.note} Fokus pada topik '${title}'.`;
+  const points = [
+    `Memahami konsep inti ${title}.`,
+    `Latihan ${group.label.toLowerCase()} sesuai kebutuhan tes ${testType}.`,
+    `Menghubungkan teori dengan soal ujian.`
+  ];
+  const formula = `Praktik ${group.label} untuk materi ${title}.`;
+  const examples = [`Contoh penerapan materi '${title}' dalam konteks ujian ${testType}.`];
+
+  return {
+    id: dayIndex,
+    label: `Hari ${dayIndex}`,
+    title,
+    description,
+    points,
+    formula,
+    examples,
+    completed: false,
+  };
+};
+
 export default function MyRoadmap() {
   const navigate = useNavigate();
 
   // 1. VIEW STATE CONTROL
   const [viewMode, setViewMode] = useState("list"); // "list" atau "detail"
   const [selectedWeek, setSelectedWeek] = useState(null);
+  const getUserEmail = () => {
+    try {
+      const user = JSON.parse(localStorage.getItem("user") || "{}");
+      return user?.email || "";
+    } catch {
+      return "";
+    }
+  };
+
+  const emailKey = getUserEmail() ? encodeURIComponent(getUserEmail()) : "guest";
+
+  const getRoadmapMetaKey = () => `roadmap_meta_${emailKey}`;
+  const getRoadmapKey = (testType) => `roadmap_${emailKey}_${testType}`;
+
+  const [targetTestType, setTargetTestType] = useState(() => {
+    const savedRoadmap = JSON.parse(localStorage.getItem(getRoadmapMetaKey()) || "{}");
+    return savedRoadmap.testType || "IELTS";
+  });
+
+  const ensureSevenDays = (testType, week) => {
+    const days = week.days?.map((day) => ({ ...day, completed: day.completed ?? false })) || [];
+    const maxDays = 7;
+    if (days.length >= maxDays) return days;
+
+    const extraDays = Array.from({ length: maxDays - days.length }, (_, index) => {
+      const dayIndex = days.length + index + 1;
+      return getDefaultDayTemplate(testType, week.id, dayIndex, week);
+    });
+
+    return [...days, ...extraDays];
+  };
+
+  const initializeWeeksData = (source, testType) => {
+    return source.map((week) => ({
+      ...week,
+      days: ensureSevenDays(testType, week),
+    }));
+  };
 
   // 2. STATE UTAMA DATA ROADMAP - OTOMATIS BERUBAH TOTAL SESUAI TARGET TES DARI PROFILE
   const [weeksData, setWeeksData] = useState(() => {
-    return ROADMAP_DICTIONARY[TARGET_TEST_FROM_PROFILE] || [];
+    const saved = localStorage.getItem(getRoadmapKey(targetTestType));
+
+    if (!saved) {
+      return [];
+    }
+
+    const parsed = JSON.parse(saved);
+
+    if (!parsed || parsed.length === 0) {
+      return [];
+    }
+
+    return initializeWeeksData(parsed, targetTestType);
   });
 
-  // 3. INTERNAL NAVIGATION STATE
+  // 3. SINKRONISASI TEST TYPE DAN RELOAD DATA JIKA TEST TYPE BERUBAH
+  useEffect(() => {
+    const savedRoadmap = JSON.parse(localStorage.getItem(getRoadmapMetaKey()) || "{}");
+    const newTestType = savedRoadmap.testType || "IELTS";
+
+    if (newTestType !== targetTestType) {
+      setTargetTestType(newTestType);
+      const saved = localStorage.getItem(getRoadmapKey(newTestType));
+      if (!saved) {
+        setWeeksData([]);
+      } else {
+        const parsed = JSON.parse(saved);
+
+        if (!parsed || parsed.length === 0) {
+          setWeeksData([]);
+        } else {
+          setWeeksData(initializeWeeksData(parsed, newTestType));
+        }
+      }
+      setSelectedWeek(null);
+      setViewMode("list");
+    }
+  }, []);
+
+  // 4. SIMPAN DATA KE LOCALSTORAGE SETIAP KALI WEEKSDATA BERUBAH
+  useEffect(() => {
+    localStorage.setItem(getRoadmapKey(targetTestType), JSON.stringify(weeksData));
+  }, [weeksData, targetTestType]);
+
+  // 5. INTERNAL NAVIGATION STATE
   const [activeDay, setActiveDay] = useState(1);
 
-  // 4. HITUNG TOTAL PROGRES KESELURUHAN SECARA OTOMATIS
+  const getWeekProgress = (week) => {
+    const completedDays = week.days?.filter((day) => day.completed).length || 0;
+    const totalDays = week.days?.length || 1;
+    return Math.round((completedDays / totalDays) * 100);
+  };
+
   const totalWeeks = weeksData.length;
-  const totalProgressSum = weeksData.reduce((sum, item) => sum + item.progress, 0);
-  const overallPercentage = totalWeeks > 0 ? Math.round(totalProgressSum / totalWeeks) : 0;
+  const totalDays = weeksData.reduce((sum, item) => sum + (item.days?.length || 0), 0);
+  const totalCompletedDays = weeksData.reduce(
+    (sum, item) => sum + (item.days?.filter((day) => day.completed).length || 0),
+    0
+  );
+  const overallPercentage = totalDays > 0 ? Math.round((totalCompletedDays / totalDays) * 100) : 0;
 
   // 5. ACTION HANDLER MASUK KE DETAIL
   const handleOpenDetail = (week) => {
@@ -516,40 +863,46 @@ export default function MyRoadmap() {
     setViewMode("detail");
   };
 
-  // 6. ACTION HANDLER SELESAI KUIS (UPDATE PROGRESS SECARA MUTABLE)
-  const handleFinishQuiz = () => {
+  // 6. ACTION HANDLER START QUIZ
+  const handleStartQuiz = () => {
     if (!selectedWeek) return;
 
-    setWeeksData((prevData) =>
-      prevData.map((w) => {
-        if (w.id === selectedWeek.id) {
-          const nextProgress = w.progress === 0 ? 60 : 100;
-          // Selaraskan state selectedWeek yang sedang aktif dibaca di layar detail
-          setSelectedWeek({ ...w, progress: nextProgress });
-          return { ...w, progress: nextProgress };
-        }
-        return w;
-      })
-    );
+    // Ambil data terbaru dari weeksData (bukan snapshot selectedWeek yang bisa stale)
+    const freshWeek = weeksData.find((w) => w.id === selectedWeek.id) || selectedWeek;
+    const currentDay = freshWeek.days.find((day) => day.id === activeDay);
+    if (!currentDay) return;
 
-    alert(`Kuis Mingguan ${TARGET_TEST_FROM_PROFILE} Selesai! Progress belajar Anda otomatis bertambah.`);
-    setViewMode("list"); 
+    if (currentDay.completed) {
+      alert(`Hari ${activeDay} sudah selesai. Jika ingin mengulang, buka kembali materi dari roadmap.`);
+      return;
+    }
+
+    const quizContext = {
+      testType: targetTestType,
+      weekId: selectedWeek.id,
+      dayId: activeDay,
+      emailKey: emailKey, // tambahkan emailKey agar quiz.jsx bisa baca data dengan key yang benar
+    };
+    localStorage.setItem("roadmap_quiz_context", JSON.stringify(quizContext));
+    navigate("/quiz");
   };
 
   return (
     <div className="min-h-screen bg-white antialiased flex flex-col justify-between">
       
       {/* ================= NAVBAR GLOBAL ================= */}
-      <nav className="bg-[#2471A3] flex items-center justify-between px-16 py-4 sticky top-0 z-50 shadow-sm text-white">
+      <nav className="bg-[#2471A3] flex items-center px-16 py-5 sticky top-0 z-50 shadow-sm text-white">
         <div className="shrink-0 cursor-pointer" onClick={() => { setViewMode("list"); navigate("/dashboard"); }}>
-          <img src={logo} alt="Lateron" className="w-[100px] h-auto object-contain brightness-0 invert" />
+          <img src={logo} alt="Lateron" className="w-[100px] h-auto object-contain brightness-0 invert" style={{ imageRendering: "auto" }} />
         </div>
-        
-        <div className="flex items-center gap-8 text-[15px] opacity-90">
-          <Link to="/dashboard" className="hover:underline">Home</Link>
-          <Link to="/generate" className="hover:underline">Generate</Link>
-          <button onClick={() => setViewMode("list")} className="font-bold border-b-2 border-white pb-1 bg-transparent text-white cursor-pointer">My Roadmap</button>
-          <Link to="/profile" className="hover:underline">Profile</Link>
+        <div className="flex-1 flex items-center justify-end gap-6 text-[15px] text-white/70 mr-14">
+          <Link to="/dashboard" className="hover:text-white transition-colors">Home</Link>
+          <span className="w-1 h-1 rounded-full bg-white/40" />
+          <Link to="/generate" className="hover:text-white transition-colors">Generate</Link>
+          <span className="w-1 h-1 rounded-full bg-white/40" />
+          <button onClick={() => setViewMode("list")} className="text-white font-semibold bg-transparent cursor-pointer">My Roadmap</button>
+          <span className="w-1 h-1 rounded-full bg-white/40" />
+          <Link to="/profile" className="hover:text-white transition-colors">Profile</Link>
         </div>
       </nav>
 
@@ -559,86 +912,126 @@ export default function MyRoadmap() {
         /* ---------------- TAMPILAN 1: UTAMA / LIST MINGGUAN ---------------- */
         <main className="max-w-6xl w-full mx-auto px-8 py-12 flex-grow">
           
-          {/* Header Ringkasan */}
-          <div className="flex justify-between items-start border-b border-gray-100 pb-8 mb-12">
-            <div>
-              <h1 className="text-[32px] font-bold text-[#143F5E] mb-1">My Learning Roadmap</h1>
-              <p className="text-[14px] text-gray-400 font-medium tracking-wide uppercase">
-                Kategori Target: <span className="text-[#2471A3] font-bold">{TARGET_TEST_FROM_PROFILE} Preparation</span> &bull; {totalWeeks} Weeks Plan
+          {weeksData.length === 0 ? (
+            /* ================= KONDISI: BELUM GENERATE (EMPTY STATE) ================= */
+            <div className="flex flex-col items-center justify-center border-2 border-dashed border-gray-200 rounded-3xl p-16 text-center bg-gray-50/50 my-12 min-h-[400px]">
+              <svg className="w-20 h-20 text-[#5A92B5]/50 mb-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+              </svg>
+
+              <h2 className="text-[22px] font-bold text-[#143F5E] mb-2">
+                Belum Ada Roadmap yang Dibuat
+              </h2>
+              
+              <p className="text-[14px] text-gray-400 max-w-md mb-8 leading-relaxed">
+                Kamu belum menentukan atau membuat jalur pembelajaran mandiri. Silakan generate target persiapan tes pilihanmu terlebih dahulu untuk melihat materi mingguan.
               </p>
+
+              <button
+                onClick={() => navigate("/generate")}
+                className="px-8 py-3.5 bg-[#2471A3] hover:bg-[#1C5D86] text-white font-semibold text-[14px] rounded-full shadow-md transition-all cursor-pointer"
+              >
+                Mulai Generate Roadmap
+              </button>
             </div>
-            <div className="text-right">
-              <h2 className="text-[40px] font-bold text-[#76D7C4] leading-none mb-1">{overallPercentage}%</h2>
-              <p className="text-[16px] font-bold text-[#76D7C4] mb-1">Completed</p>
-              <p className="text-[13px] text-[#2471A3] italic font-medium">You are getting closer to your goal.</p>
-            </div>
-          </div>
+          ) : (
+            /* ================= KONDISI: SUDAH GENERATE (TAMPILKAN DETAIL) ================= */
+            <>
+              {/* Header Ringkasan */}
+              <div className="flex justify-between items-start border-b border-gray-100 pb-8 mb-12">
+                <div>
+                  <h1 className="text-[32px] font-bold text-[#143F5E] mb-1">My Learning Roadmap</h1>
+                  <p className="text-[14px] text-gray-400 font-medium tracking-wide uppercase">
+                    Kategori Target: <span className="text-[#2471A3] font-bold">{targetTestType} Preparation</span> &bull; {totalWeeks} Weeks Plan
+                  </p>
+                </div>
+                <div className="text-right">
+                  <h2 className="text-[40px] font-bold text-[#76D7C4] leading-none mb-1">{overallPercentage}%</h2>
+                  <p className="text-[16px] font-bold text-[#76D7C4] mb-1">Completed</p>
+                  <p className="text-[13px] text-[#2471A3] italic font-medium">You are getting closer to your goal.</p>
+                </div>
+              </div>
 
-          {/* Timeline Wrapper */}
-          <div className="relative pl-4">
-            {weeksData.map((item, index) => {
-              const isCompleted = item.progress === 100;
-              const isOngoing = item.progress > 0 && item.progress < 100;
-              const isLocked = item.progress === 0;
+              {/* Timeline Wrapper */}
+              <div className="relative pl-4">
+                {weeksData.map((item, index) => {
+                  const itemProgress = getWeekProgress(item);
+                  const isCompleted = itemProgress === 100;
+                  const isOngoing = itemProgress > 0 && itemProgress < 100;
+                  const isLocked = itemProgress === 0;
+                  const isUnlocked = weeksData
+                    .slice(0, index)
+                    .every((prevWeek) => getWeekProgress(prevWeek) === 100);
 
-              return (
-                <div key={item.id} className="flex items-start gap-12 relative pb-16 last:pb-0">
-                  {index !== weeksData.length - 1 && (
-                    <div className="absolute left-[15px] top-8 bottom-0 w-[1.5px] bg-gray-200 z-0" />
-                  )}
-
-                  <div className="relative z-10 flex items-center gap-6 w-[130px] shrink-0">
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 transition-all ${
-                      isCompleted ? "bg-[#2471A3] border-[#2471A3]" : "bg-[#EAF2F8] border-white"
-                    }`}>
-                      {isCompleted ? (
-                        <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                        </svg>
-                      ) : (
-                        <div className={`w-2.5 h-2.5 rounded-full ${isOngoing ? "bg-[#2471A3]" : "bg-white"}`} />
+                  return (
+                    <div key={item.id} className="flex items-start gap-12 relative pb-16 last:pb-0">
+                      {index !== weeksData.length - 1 && (
+                        <div className="absolute left-[15px] top-8 bottom-0 w-[1.5px] bg-gray-200 z-0" />
                       )}
-                    </div>
-                    <span className={`text-[16px] font-bold ${isLocked ? "text-gray-400" : "text-[#143F5E]"}`}>
-                      {item.weekLabel}
-                    </span>
-                  </div>
 
-                  <div className="flex-1">
-                    <h3 className={`text-[18px] font-bold mb-2 ${isLocked ? "text-gray-400" : "text-[#143F5E]"}`}>
-                      {item.title}
-                    </h3>
-                    <p className="text-[13px] text-gray-400 leading-relaxed mb-4 text-justify">
-                      {item.desc}
-                    </p>
-                    
-                    <div className="flex items-center gap-4">
-                      <span className="text-[13px] font-bold text-gray-400 w-8">{item.progress}%</span>
-                      <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
-                        <div 
-                          className="h-full bg-[#76D7C4] rounded-full transition-all duration-500" 
-                          style={{ width: `${item.progress}%` }}
-                        />
+                      <div className="relative z-10 flex items-center gap-6 w-[130px] shrink-0">
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 transition-all ${
+                          isCompleted ? "bg-[#2471A3] border-[#2471A3]" : "bg-[#EAF2F8] border-white"
+                        }`}>
+                          {isCompleted ? (
+                            <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                            </svg>
+                          ) : (
+                            <div className={`w-2.5 h-2.5 rounded-full ${isOngoing ? "bg-[#2471A3]" : "bg-white"}`} />
+                          )}
+                        </div>
+                        <span className={`text-[16px] font-bold ${isLocked ? "text-gray-400" : "text-[#143F5E]"}`}>
+                          {item.weekLabel}
+                        </span>
+                      </div>
+
+                      <div className="flex-1">
+                        <h3 className={`text-[18px] font-bold mb-2 ${isLocked ? "text-gray-400" : "text-[#143F5E]"}`}>
+                          {item.title}
+                        </h3>
+                        <p className="text-[13px] text-gray-400 leading-relaxed mb-4 text-justify">
+                          {item.desc}
+                        </p>
+                        
+                        <div className="flex items-center gap-4">
+                          <span className="text-[13px] font-bold text-gray-400 w-8">{itemProgress}%</span>
+                          <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
+                            <div 
+                              className="h-full bg-[#76D7C4] rounded-full transition-all duration-500" 
+                              style={{ width: `${itemProgress}%` }}
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="w-[140px] shrink-0 text-right pt-2">
+                        <button
+                          onClick={() => {
+                            if (!isUnlocked) {
+                              alert("Selesaikan minggu sebelumnya terlebih dahulu sebelum membuka yang berikutnya.");
+                              return;
+                            }
+                            handleOpenDetail(item);
+                          }}
+                          disabled={!isUnlocked}
+                          className={`w-full text-[14px] font-semibold py-2.5 px-6 rounded-full transition-all ${
+                            !isUnlocked
+                              ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                              : isLocked
+                              ? "bg-[#9FB5C4] text-white hover:bg-gray-400"
+                              : "bg-[#2471A3] text-white hover:bg-[#1C5D86]"
+                          }`}
+                        >
+                          {!isUnlocked ? "Terkunci" : isLocked ? "Mulai" : "Tinjau Ulang"}
+                        </button>
                       </div>
                     </div>
-                  </div>
-
-                  <div className="w-[140px] shrink-0 text-right pt-2">
-                    <button
-                      onClick={() => handleOpenDetail(item)}
-                      className={`w-full text-[14px] font-semibold py-2.5 px-6 rounded-full transition-all cursor-pointer ${
-                        isLocked
-                          ? "bg-[#9FB5C4] text-white hover:bg-gray-400"
-                          : "bg-[#2471A3] text-white hover:bg-[#1C5D86]"
-                      }`}
-                    >
-                      {isLocked ? "Mulai" : "Tinjau Ulang"}
-                    </button>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+                  );
+                })}
+              </div>
+            </>
+          )}
         </main>
       ) : (
         /* ---------------- TAMPILAN 2: DETAIL HARIAN ---------------- */
@@ -679,7 +1072,11 @@ export default function MyRoadmap() {
 
           {/* Area Konten Kanan Dinamis */}
           {(() => {
-            const currentDayData = selectedWeek?.days.find(d => d.id === activeDay);
+            // Gunakan data fresh dari weeksData agar status completed selalu up-to-date
+            const freshWeek = selectedWeek
+              ? weeksData.find((w) => w.id === selectedWeek.id) || selectedWeek
+              : null;
+            const currentDayData = freshWeek?.days.find(d => d.id === activeDay);
             return (
               <div className="flex-1 pl-4 pt-10">
                 <p className="text-[13px] text-gray-400 font-semibold mb-1">
@@ -723,13 +1120,14 @@ export default function MyRoadmap() {
                   </ul>
                 </div>
 
-                {/* Tombol Pemicu Kuis */}
+                {/* Tombol Start Quiz */}
                 <div className="flex justify-end">
                   <button 
-                    onClick={handleFinishQuiz}
-                    className="bg-[#2471A3] text-white text-[14px] font-semibold px-8 py-3 rounded-full hover:bg-[#1C5D86] transition-colors shadow-md cursor-pointer"
+                    onClick={handleStartQuiz}
+                    disabled={currentDayData?.completed}
+                    className={`text-white text-[14px] font-semibold px-8 py-3 rounded-full transition-colors shadow-md cursor-pointer ${currentDayData?.completed ? "bg-gray-300 text-gray-700 cursor-not-allowed" : "bg-[#2471A3] hover:bg-[#1C5D86]"}`}
                   >
-                    Start {TARGET_TEST_FROM_PROFILE} Quiz
+                    {currentDayData?.completed ? "Finish Quiz" : "Start Quiz"}
                   </button>
                 </div>
               </div>
@@ -750,13 +1148,13 @@ export default function MyRoadmap() {
           <div>
             <p className="text-[14px] font-bold text-[#143F5E] mb-4">Quick Links</p>
             {["Home", "About Us", "Roadmap", "Dashboard"].map((l) => (
-              <button key={l} onClick={() => setViewMode("list")} className="block text-[13px] text-[#5A92B5] mb-2.5 hover:text-[#2471A3] bg-transparent p-0 border-none transition-colors cursor-pointer">{l}</button>
+              <button key={l} disabled className="block text-[13px] text-[#5A92B5] mb-2.5 bg-transparent p-0 border-none transition-colors cursor-default opacity-70">{l}</button>
             ))}
           </div>
           <div>
             <p className="text-[14px] font-bold text-[#143F5E] mb-4">Support</p>
             {["Language Test", "Progress Tracker", "Contact", "FAQ"].map((l) => (
-              <Link key={l} to="/dashboard" className="block text-[13px] text-[#5A92B5] mb-2.5 hover:text-[#2471A3] transition-colors">{l}</Link>
+              <span key={l} className="block text-[13px] text-[#5A92B5] mb-2.5 transition-colors opacity-70 cursor-default">{l}</span>
             ))}
           </div>
         </div>
