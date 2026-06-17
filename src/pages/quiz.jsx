@@ -310,7 +310,7 @@ export default function Quiz() {
   return;
 }
 
-fetch("http://localhost:3000/quiz/submit", {
+fetch("http://lateron-api-production.up.railway.app/quiz/submit", {
   method: "POST",
   headers: {
     "Content-Type": "application/json",

@@ -35,7 +35,7 @@ export default function Login() {
 
   const handleLogin = async () => {
   try {
-    const response = await fetch("http://localhost:3000/users/login", {
+    const response = await fetch("http://lateron-api-production.up.railway.app/users/login", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

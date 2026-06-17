@@ -87,7 +87,7 @@ const [confirmPassword, setConfirmPassword] = useState("");
       return;
     }
 
-    const response = await fetch("http://localhost:3000/users", {
+    const response = await fetch("http://lateron-api-production.up.railway.app/users", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
